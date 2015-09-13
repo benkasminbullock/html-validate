@@ -1,0 +1,5 @@
+Accepts piped input on stdin
+
+Accepts file names and opens and reads them
+
+LINE NUMBERS based, unclosed tags based on file numbers.
