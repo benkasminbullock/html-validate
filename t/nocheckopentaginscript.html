@@ -1,0 +1,239 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>kanji.sljfaq.org News</title>
+
+<link rel=stylesheet href="kanji-33.css" media=all>
+<link rel=stylesheet href="news-33.css" media=all>
+<script type="text/javascript" src="kanji-33.js"></script>
+<script type="text/javascript">
+window.google_analytics_uacct = "UA-11731688-2";
+</script>
+</head>
+<body  onload="initialize_input_box (); ">
+
+<table id="kanji_menu">
+<tr>
+
+
+<td onclick='go_to ("codes.html");' class="page_tab not_chosen_tab"><a href="codes.html">Input codes
+</a>
+</td>
+
+<td onclick='go_to ("mr.html");' class="page_tab not_chosen_tab"><a href="mr.html">Multiradical
+</a>
+</td>
+
+<td onclick='go_to ("draw.html");' class="page_tab not_chosen_tab"><a href="draw.html">Handwritten
+</a>
+</td>
+
+<td onclick='go_to ("four.html");' class="page_tab not_chosen_tab"><a href="four.html">Four-corner
+</a>
+</td>
+
+<td onclick='go_to ("soft-keyboard.html");' class="page_tab not_chosen_tab"><a href="soft-keyboard.html">Kana input
+</a>
+</td>
+</tr><tr>
+
+
+<td onclick='go_to ("radicals.html");' class="page_tab not_chosen_tab"><a href="radicals.html">Radicals
+</a>
+</td>
+
+<td onclick='go_to ("mr-old.html");' class="page_tab not_chosen_tab"><a href="mr-old.html">Multiradical (old)
+</a>
+</td>
+
+<td onclick='go_to ("draw-canvas.html");' class="page_tab not_chosen_tab"><a href="draw-canvas.html">Handwritten (HTML5)
+</a>
+</td>
+
+<td onclick='go_to ("skip.html");' class="page_tab not_chosen_tab"><a href="skip.html">SKIP
+</a>
+</td>
+
+<td onclick='go_to ("option.html");' class="page_tab not_chosen_tab"><a href="option.html">Options
+</a>
+</td>
+</tr>
+</table>
+
+<div id='lang-switch'>
+<small>
+Language:
+</small>
+<select id="lang_select" onchange="change_language()">
+<option value="news.html" selected>English</option><option value="newsj.html">日本語</option><option value="news.ru.html">Русский</option><option value="news.es.html">Español</option><option value="news.de.html">Deutsch</option><option value="news.fr.html">Français</option><option value="news.th.html">ไทย</option><option value="news.ko.html">한국어</option><option value="news.pt.html">Português</option><option value="news.fi.html">Suomi</option><option value="news.tr.html">Türkçe</option><option value="news.zh-TW.html">中文（繁體）</option><option value="news.zh-CN.html">中文（简体）</option><option value="news.vi.html">Tiếng Việt</option><option value="news.it.html">Italiano</option>
+</select>
+
+<a class='help-link' href='help.html'>Help</a>
+<div id='input_box_div' style='display:none;'>
+<form action='#' id="input_box" onsubmit="return false;"> 
+<input type='search' size='20' id='input_box_input'>
+<input type='reset' onclick='clear_input_box ();' value='Clear'>
+<input type='submit' onclick='search_input_box ();' value='Search'>
+</form> 
+</div>
+
+</div>
+<script>
+var d;
+function write_date (e)
+{
+var now = new Date();
+var Days = new Array (
+"Sunday",
+"Monday",
+"Tuesday",
+"Wednesday",
+"Thursday",
+"Friday",
+"Saturday"
+);
+var months = new Array (
+"January",
+"February",
+"March",
+"April",
+"May",
+"June",
+"July",
+"August",
+"September",
+"October",
+"November",
+"December"
+);
+    var month = Math.round (e.getMonth ());
+    document.write (Days[e.getDay()] + " " + e.getDate() + " " + months[month] + " " + e.getFullYear());
+    document.write (" (");
+    var diff = (now.getTime () - d.getTime ()) / (1000 * 86400);
+    if (diff < 1) {
+	document.write ("Today")
+    }
+    else if (diff < 2) {
+	document.write ("Yesterday")
+    }
+    else if (diff < 12) {
+        var days = Math.round (diff);
+	document.write (days + " days ago");
+    }
+    else if (diff < 30) {
+        var weeks = Math.round (diff / 7);
+	document.write (weeks + " weeks ago");
+    }
+    else if (diff < 365) {
+	var months = Math.round (diff / 30);
+	document.write (months + " months ago");
+    }
+    else {
+	var years = Math.round (diff / 365);
+	document.write (years + " years ago");
+    }
+    document.write (")");
+}
+</script>
+<h1>kanji.sljfaq.org News</h1>
+<div id='news-items'>
+
+<div class='news-item-date'>
+<script>
+d = new Date(2015,7,11);
+write_date (d);
+</script>
+<div class='news-item-title'>
+Back in the USA again
+</div>
+</div>
+<div class='news-item-text'>
+Due to server performance issues, kanji.sljfaq.org is back at its
+original home in the USA.
+<a href="https://groups.google.com/forum/#!topic/sljfaqorg/yFDwBq-aN1w">More</a>
+</div>
+</div>
+<div class='news-item-date'>
+<script>
+d = new Date(2015,6,27);
+write_date (d);
+</script>
+<div class='news-item-title'>
+Italian translations added
+</div>
+</div>
+<div class='news-item-text'>
+I've added translations to Italian and a notice about the USA server.
+<a href="https://groups.google.com/forum/#!topic/sljfaqorg/MqQAmuc2Mjg">More</a>
+</div>
+</div>
+<div class='news-item-date'>
+<script>
+d = new Date(2015,6,18);
+write_date (d);
+</script>
+<div class='news-item-title'>
+Translations can now be edited
+</div>
+</div>
+<div class='news-item-text'>
+Users can now edit translations. See <a href="translation.html">this page</a>.
+<a href="https://groups.google.com/forum/#!topic/sljfaqorg/0eBy0-8h7BI">More</a>
+</div>
+</div>
+<div class='news-item-date'>
+<script>
+d = new Date(2015,6,17);
+write_date (d);
+</script>
+<div class='news-item-title'>
+New link option "Zdic (Chinese)"
+</div>
+</div>
+<div class='news-item-text'>
+There is a new choice for links, Zdic (Chinese). You can change where the links on the kanji go to on the <a href="option.html">Options</a> page.
+<a href="https://groups.google.com/forum/#!topic/sljfaqorg/8wc6FLb0AVE">More</a>
+</div>
+</div>
+<div class='news-item-date'>
+<script>
+d = new Date(2015,6,11);
+write_date (d);
+</script>
+<div class='news-item-title'>
+kanji.sljfaq.org is moving to Japan
+</div>
+</div>
+<div class='news-item-text'>
+kanji.sljfaq.org is moving to a new server in Japan. More than eighty
+percent of users are in Japan. This is to increase the speed of access
+for users in Japan.
+<a href="https://groups.google.com/forum/#!topic/sljfaqorg/2BXOts0E5Pk">More</a>
+</div>
+</div>
+
+</div>
+<p id="contact-info">
+For queries, please
+email <a href="mailto:benkasminbullock@gmail.com">Ben Bullock</a>
+or use the
+<a href="http://groups.google.com/group/sljfaqorg">discussion forum</a>.
+/ <a href="/privacy.html">Privacy</a>
+/ <a href="translation.html">Translations</a>
+</p>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11731688-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<script>
+var ml = new Object ();ml.empty_search="There is nothing to search for.";
+</script>
+</body>
+</html>

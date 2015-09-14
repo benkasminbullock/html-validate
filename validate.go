@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"errors"
-	//"runtime"
 	"unicode/utf8"
 	"io/ioutil"
 	"os"
@@ -13,48 +12,36 @@ import (
 // Valid HTML tags
 
 var validTags = []string{
-	"a",
-	"b",
+	"big",
 	"blockquote",
 	"body",
+	"button",
+	"canvas",
 	"caption",
-	"center",
-	"code",
 	"del",
 	"div",
 	"dl",
-	"em",
 	"figcaption",
 	"figure",
 	"font",
 	"form",
-	"h1",
-	"h2",
-	"h3",
-	"h4",
-	"head",
-	"html",
-	"i",
 	"ins",
+	"label",
 	"li",
-	"map",
+	"noscript",
 	"ol",
-	"p",
-	"pre",
+	"option",
 	"ref", // temp remove this just for sljfaq.ff checking.
-	"rt",
 	"rp",
+	"rt",
 	"ruby",
-	"script",
-	"small",
-	"span",
-	"strong",
+	"select",
 	"sup",
 	"table",
 	"tbody",
 	"td",
+	"textarea",
 	"th",
-	"title",
 	"tr",
 	"ul",
 }
@@ -74,8 +61,37 @@ var noCloseTags = []string{
 	"meta",
 }
 
+// These tags should not be nested, e.g. <p><p>. 
+
+var nonNestingTags = []string {
+	"a",
+	"b",
+	"center",
+	"code",
+	"em",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"head",
+	"html",
+	"i",
+	"map",
+	"p",
+	"pre",
+	"script",
+	"small",
+	"span",
+	"span",
+	"strong",
+	"strong",
+	"style",
+	"title",
+}
+
 var valid map[string]bool
 var noClose map[string]bool
+var nonNesting map[string]bool
 
 type lineTag struct {
 	tag string
@@ -90,10 +106,16 @@ func makeMap(list []string) (z map[string]bool) {
 	return z
 }
 
+/* Set up all the tables for validation. */
+
 func initValid() {
 	valid = makeMap(validTags)
 	noClose = makeMap(noCloseTags)
+	nonNesting = makeMap(nonNestingTags)
 	for _, tag := range noCloseTags {
+		valid[tag] = true
+	}
+	for _, tag := range nonNestingTags {
 		valid[tag] = true
 	}
 }
@@ -102,6 +124,11 @@ type stringPos struct {
 	position int
 	i int
 	line int
+	filename string
+}
+
+func (sp *stringPos) String() string {
+	return fmt.Sprintf("%s:%d:", sp.filename, sp.line)
 }
 
 // Jump over jumpbytes bytes, adjusting the strings and counting
@@ -119,7 +146,34 @@ func jumpover(html string, jumpbytes int, sp * stringPos) {
 	sp.position += jumpbytes
 }
 
-func findTag(html string, sp * stringPos) (tag string, err error) {
+func findIds(ids map[string]lineTag, tag string, remaining string, sp * stringPos) {
+	// The located ID.
+	var id string
+	idequal := strings.Index(remaining, "id=")
+	if idequal != -1 {
+		openquote := strings.IndexAny(remaining[idequal+1:], "\"'")
+		if openquote != -1 {
+			closequote := strings.IndexAny(remaining[idequal+openquote+2:], "\"'")
+			if closequote != -1 {
+				id = remaining[idequal+openquote+2:idequal+openquote+2+closequote]
+//				fmt.Printf("%s found id '%s'\n", sp, id);
+				if lt, exists := ids[id]; exists {
+					fmt.Printf("%s:%d: duplicate id '%s'\n",
+						sp.filename, sp.line, id);
+					fmt.Printf("%s:%d: previous instance in tag '%s'\n",
+						sp.filename, lt.line, lt.tag) 
+				} else {
+					var lt lineTag
+					lt.line = sp.line
+					lt.tag = tag
+					ids[id] = lt
+				}
+			}
+		}
+	}
+}
+
+func findTag(html string, sp * stringPos, open bool, ids map[string]lineTag) (tag string, err error) {
 	start := strings.IndexAny(html[sp.position:], " >\n")
 	if start == -1 {
 		return "", errors.New("No ending marker found")
@@ -130,21 +184,61 @@ func findTag(html string, sp * stringPos) (tag string, err error) {
 	if end == -1 {
 		return "", errors.New("No > after <")
 	}
+
+	// ids as nil is used for end tags.
+	if open && start+1 < end {
+		remaining := html[sp.position+start+1:sp.position+end]
+		if len(remaining) > 0 {
+			findIds(ids, tag, remaining, sp)
+		}
+	}
 	jumpover(html, end, sp)
  	return tag, err
 }
 
+/* Skip over HTML comments or doctype declarations. */
+
 func skipComment(html string, sp * stringPos) (err error) {
-	end := strings.Index(html[sp.position:], "-->")
-	if (end == -1) {
-		return errors.New("No --> found for comment")
+	var end int
+	start := html[sp.position:]
+	if strings.ToLower(start[0:7]) == "doctype" {
+		end = strings.Index(start, ">")
+		if (end == -1) {
+			return errors.New("No > found for doctype")
+		}
+	} else if start[0:2] == "--" {
+		end = strings.Index(start, "-->")
+		if (end == -1) {
+			return errors.New("No --> found for comment")
+		}
+	} else {
+		return errors.New("<! but no doctype or comment marker")
 	}
+	jumpover (html, end, sp)
+	return
+}
+
+/* Skip over <script>..</script>. */
+
+func skipScript(html string, sp * stringPos) (err error) {
+	var end int
+	start := html[sp.position:]
+	end = strings.Index(start, "</script>")
+	if (end == -1) {
+		fmt.Printf("%s no </script> found.\n", sp);
+		return errors.New("No </script> found for <script>")
+	}
+	// This leaves the </script> tag at the start of what sp points
+	// to, then it is handled by the usual closing tag stuff.
 	jumpover (html, end, sp)
 	return
 }
 
 func validate(html string, filename string, offset int) {
 	var opentags []lineTag
+	nestTags := make(map[string]lineTag)
+	// id= things within HTML opening tags.
+	ids := make(map[string]lineTag)
 	var sp stringPos
 	split := strings.Split(html, "")
 	nletters := len(split)
@@ -152,6 +246,7 @@ func validate(html string, filename string, offset int) {
 	sp.i = 0
 	// The current line number.
 	sp.line = 1 + offset
+	sp.filename = filename
 	for sp.i < nletters {
 		c := split[sp.i]
 		switch c {
@@ -168,7 +263,7 @@ func validate(html string, filename string, offset int) {
 
 				sp.i++
 				sp.position += len(c)
-				tag, err := findTag(html, & sp)
+				tag, err := findTag(html, & sp, false, ids)
 				if err != nil {
 					fmt.Printf("%s:%d: error %s\n",
 						filename, sp.line, err)
@@ -177,6 +272,7 @@ func validate(html string, filename string, offset int) {
 					fmt.Printf("%s:%d: %s close tag %s\n",
 						filename, sp.line, c, tag)
 */
+					delete (nestTags, tag)
 					var toptag lineTag
 					if len(opentags) > 0 {
 						opentags, toptag = opentags[:len(opentags) - 1], opentags[len(opentags) - 1]
@@ -211,18 +307,21 @@ func validate(html string, filename string, offset int) {
 							opentags = append(opentags, toptag)
 						}
 					}
+
 				}
 			case " ":
 				fmt.Printf("%s:%d: space character after <.\n",
 					filename, sp.line)
 			case "!":
+				sp.i++
+				sp.position += len(c)
 				err := skipComment(html, & sp)
 				if err != nil {
 					fmt.Printf("%s:%d: error %s\n",
 						filename, sp.line, err)
 				}
 			default:
-				tag, err := findTag(html, & sp)
+				tag, err := findTag(html, & sp, true, ids)
 				if ! valid[tag] {
 					fmt.Printf("%s:%d: unknown tag <%s>.\n",
 						filename, sp.line, tag)
@@ -237,7 +336,25 @@ func validate(html string, filename string, offset int) {
 						lt.tag = tag
 						lt.line = sp.line
 						opentags = append(opentags, lt)
+						if nonNesting[tag] {
+							/*
+							fmt.Printf("%s:%d: non-nesting tag %s\n",
+								filename, sp.line, tag);
+*/
+							previous, nested := nestTags[tag]
+							if nested {
+								fmt.Printf("%s:%d: nested <%s>.\n",
+									filename, sp.line, tag);
+								fmt.Printf("%s:%d: first <%s> is here.\n",
+									filename, previous.line, tag)
+							} else {
+								nestTags[tag] = lt;
+							}
+						}
 					}
+				}
+				if tag == "script" {
+					skipScript(html, & sp)
 				}
 			}
 		case "\n":

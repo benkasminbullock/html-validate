@@ -1,0 +1,334 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Kana input</title>
+
+<link rel=stylesheet href="kanji-33.css" media=all>
+<script type="text/javascript" src="kanji-33.js"></script>
+<script type="text/javascript" src="kana-input-33.js"></script>
+<script type="text/javascript">
+window.google_analytics_uacct = "UA-11731688-2";
+</script>
+</head>
+<body  onload="initialize_input_box (); ">
+<noscript>
+<div class="nojavascript">
+<p>This page uses JavaScript, but JavaScript does not seem to be
+available in your browser. I apologize for the inconvenience, but
+please try either switching on your browser's JavaScript, or visit
+again with a different browser.</p>
+</div>
+</noscript>
+
+<table id="kanji_menu">
+<tr>
+
+
+<td onclick='go_to ("codes.html");' class="page_tab not_chosen_tab"><a href="codes.html">Input codes
+</a>
+</td>
+
+<td onclick='go_to ("mr.html");' class="page_tab not_chosen_tab"><a href="mr.html">Multiradical
+</a>
+</td>
+
+<td onclick='go_to ("draw.html");' class="page_tab not_chosen_tab"><a href="draw.html">Handwritten
+</a>
+</td>
+
+<td onclick='go_to ("four.html");' class="page_tab not_chosen_tab"><a href="four.html">Four-corner
+</a>
+</td>
+<td class="page_tab chosen_tab">Kana input</td>
+</tr><tr>
+
+
+<td onclick='go_to ("radicals.html");' class="page_tab not_chosen_tab"><a href="radicals.html">Radicals
+</a>
+</td>
+
+<td onclick='go_to ("mr-old.html");' class="page_tab not_chosen_tab"><a href="mr-old.html">Multiradical (old)
+</a>
+</td>
+
+<td onclick='go_to ("draw-canvas.html");' class="page_tab not_chosen_tab"><a href="draw-canvas.html">Handwritten (HTML5)
+</a>
+</td>
+
+<td onclick='go_to ("skip.html");' class="page_tab not_chosen_tab"><a href="skip.html">SKIP
+</a>
+</td>
+
+<td onclick='go_to ("option.html");' class="page_tab not_chosen_tab"><a href="option.html">Options
+</a>
+</td>
+</tr>
+</table>
+
+<div id='lang-switch'>
+<small>
+Language:
+</small>
+<select id="lang_select" onchange="change_language()">
+<option value="soft-keyboard.html" selected>English</option><option value="soft-keyboardj.html">日本語</option><option value="soft-keyboard.ru.html">Русский</option><option value="soft-keyboard.es.html">Español</option><option value="soft-keyboard.de.html">Deutsch</option><option value="soft-keyboard.fr.html">Français</option><option value="soft-keyboard.th.html">ไทย</option><option value="soft-keyboard.ko.html">한국어</option><option value="soft-keyboard.pt.html">Português</option><option value="soft-keyboard.fi.html">Suomi</option><option value="soft-keyboard.tr.html">Türkçe</option><option value="soft-keyboard.zh-TW.html">中文（繁體）</option><option value="soft-keyboard.zh-CN.html">中文（简体）</option><option value="soft-keyboard.vi.html">Tiếng Việt</option><option value="soft-keyboard.it.html">Italiano</option>
+</select>
+
+<a class='help-link' href='help.html'>Help</a>
+<div id='input_box_div' style='display:none;'>
+<form action='#' id="input_box" onsubmit="return false;"> 
+<input type='search' size='20' id='input_box_input'>
+<input type='reset' onclick='clear_input_box ();' value='Clear'>
+<input type='submit' onclick='search_input_box ();' value='Search'>
+</form> 
+</div>
+
+</div>
+
+<form>
+<input type='checkbox' name='katakana' id='katakana-toggle' onclick='toggle_katakana ()'>
+<label for='katakana-toggle'>Katakana</label>
+</form>
+
+<table id='hiragana-table'class='kana-table'>
+<tr>
+<td onclick="write_kanji ('あ');">あ</td>
+<td onclick="write_kanji ('ぁ');">ぁ</td>
+<td onclick="write_kanji ('か');">か</td>
+<td onclick="write_kanji ('が');">が</td>
+<td onclick="write_kanji ('さ');">さ</td>
+<td onclick="write_kanji ('ざ');">ざ</td>
+<td onclick="write_kanji ('た');">た</td>
+<td onclick="write_kanji ('だ');">だ</td>
+<td onclick="write_kanji ('な');">な</td>
+<td onclick="write_kanji ('は');">は</td>
+<td onclick="write_kanji ('ば');">ば</td>
+<td onclick="write_kanji ('ぱ');">ぱ</td>
+<td onclick="write_kanji ('ま');">ま</td>
+<td onclick="write_kanji ('や');">や</td>
+<td onclick="write_kanji ('ゃ');">ゃ</td>
+<td onclick="write_kanji ('ら');">ら</td>
+<td onclick="write_kanji ('わ');">わ</td>
+<td onclick="write_kanji ('ん');">ん</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('い');">い</td>
+<td onclick="write_kanji ('ぃ');">ぃ</td>
+<td onclick="write_kanji ('き');">き</td>
+<td onclick="write_kanji ('ぎ');">ぎ</td>
+<td onclick="write_kanji ('し');">し</td>
+<td onclick="write_kanji ('じ');">じ</td>
+<td onclick="write_kanji ('ち');">ち</td>
+<td onclick="write_kanji ('ぢ');">ぢ</td>
+<td onclick="write_kanji ('に');">に</td>
+<td onclick="write_kanji ('ひ');">ひ</td>
+<td onclick="write_kanji ('び');">び</td>
+<td onclick="write_kanji ('ぴ');">ぴ</td>
+<td onclick="write_kanji ('み');">み</td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('り');">り</td>
+<td onclick="write_kanji ('ゐ');">ゐ</td>
+<td onclick="write_kanji ('っ');">っ</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('う');">う</td>
+<td onclick="write_kanji ('ぅ');">ぅ</td>
+<td onclick="write_kanji ('く');">く</td>
+<td onclick="write_kanji ('ぐ');">ぐ</td>
+<td onclick="write_kanji ('す');">す</td>
+<td onclick="write_kanji ('ず');">ず</td>
+<td onclick="write_kanji ('つ');">つ</td>
+<td onclick="write_kanji ('づ');">づ</td>
+<td onclick="write_kanji ('ぬ');">ぬ</td>
+<td onclick="write_kanji ('ふ');">ふ</td>
+<td onclick="write_kanji ('ぶ');">ぶ</td>
+<td onclick="write_kanji ('ぷ');">ぷ</td>
+<td onclick="write_kanji ('む');">む</td>
+<td onclick="write_kanji ('ゆ');">ゆ</td>
+<td onclick="write_kanji ('ゅ');">ゅ</td>
+<td onclick="write_kanji ('る');">る</td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('ゔ');">ゔ</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('え');">え</td>
+<td onclick="write_kanji ('ぇ');">ぇ</td>
+<td onclick="write_kanji ('け');">け</td>
+<td onclick="write_kanji ('げ');">げ</td>
+<td onclick="write_kanji ('せ');">せ</td>
+<td onclick="write_kanji ('ぜ');">ぜ</td>
+<td onclick="write_kanji ('て');">て</td>
+<td onclick="write_kanji ('で');">で</td>
+<td onclick="write_kanji ('ね');">ね</td>
+<td onclick="write_kanji ('へ');">へ</td>
+<td onclick="write_kanji ('べ');">べ</td>
+<td onclick="write_kanji ('ぺ');">ぺ</td>
+<td onclick="write_kanji ('め');">め</td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('れ');">れ</td>
+<td onclick="write_kanji ('ゑ');">ゑ</td>
+<td onclick="write_kanji ('ー');">ー</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('お');">お</td>
+<td onclick="write_kanji ('ぉ');">ぉ</td>
+<td onclick="write_kanji ('こ');">こ</td>
+<td onclick="write_kanji ('ご');">ご</td>
+<td onclick="write_kanji ('そ');">そ</td>
+<td onclick="write_kanji ('ぞ');">ぞ</td>
+<td onclick="write_kanji ('と');">と</td>
+<td onclick="write_kanji ('ど');">ど</td>
+<td onclick="write_kanji ('の');">の</td>
+<td onclick="write_kanji ('ほ');">ほ</td>
+<td onclick="write_kanji ('ぼ');">ぼ</td>
+<td onclick="write_kanji ('ぽ');">ぽ</td>
+<td onclick="write_kanji ('も');">も</td>
+<td onclick="write_kanji ('よ');">よ</td>
+<td onclick="write_kanji ('ょ');">ょ</td>
+<td onclick="write_kanji ('ろ');">ろ</td>
+<td onclick="write_kanji ('を');">を</td>
+<td onclick="write_kanji ('。');">。</td>
+</tr>
+</table>
+<table id='katakana-table'
+style='display:none;'class='kana-table'>
+<tr>
+<td onclick="write_kanji ('ア');">ア</td>
+<td onclick="write_kanji ('ァ');">ァ</td>
+<td onclick="write_kanji ('カ');">カ</td>
+<td onclick="write_kanji ('ガ');">ガ</td>
+<td onclick="write_kanji ('サ');">サ</td>
+<td onclick="write_kanji ('ザ');">ザ</td>
+<td onclick="write_kanji ('タ');">タ</td>
+<td onclick="write_kanji ('ダ');">ダ</td>
+<td onclick="write_kanji ('ナ');">ナ</td>
+<td onclick="write_kanji ('ハ');">ハ</td>
+<td onclick="write_kanji ('バ');">バ</td>
+<td onclick="write_kanji ('パ');">パ</td>
+<td onclick="write_kanji ('マ');">マ</td>
+<td onclick="write_kanji ('ヤ');">ヤ</td>
+<td onclick="write_kanji ('ャ');">ャ</td>
+<td onclick="write_kanji ('ラ');">ラ</td>
+<td onclick="write_kanji ('ワ');">ワ</td>
+<td onclick="write_kanji ('ン');">ン</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('イ');">イ</td>
+<td onclick="write_kanji ('ィ');">ィ</td>
+<td onclick="write_kanji ('キ');">キ</td>
+<td onclick="write_kanji ('ギ');">ギ</td>
+<td onclick="write_kanji ('シ');">シ</td>
+<td onclick="write_kanji ('ジ');">ジ</td>
+<td onclick="write_kanji ('チ');">チ</td>
+<td onclick="write_kanji ('ヂ');">ヂ</td>
+<td onclick="write_kanji ('ニ');">ニ</td>
+<td onclick="write_kanji ('ヒ');">ヒ</td>
+<td onclick="write_kanji ('ビ');">ビ</td>
+<td onclick="write_kanji ('ピ');">ピ</td>
+<td onclick="write_kanji ('ミ');">ミ</td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('リ');">リ</td>
+<td onclick="write_kanji ('ヰ');">ヰ</td>
+<td onclick="write_kanji ('ッ');">ッ</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('ウ');">ウ</td>
+<td onclick="write_kanji ('ゥ');">ゥ</td>
+<td onclick="write_kanji ('ク');">ク</td>
+<td onclick="write_kanji ('グ');">グ</td>
+<td onclick="write_kanji ('ス');">ス</td>
+<td onclick="write_kanji ('ズ');">ズ</td>
+<td onclick="write_kanji ('ツ');">ツ</td>
+<td onclick="write_kanji ('ヅ');">ヅ</td>
+<td onclick="write_kanji ('ヌ');">ヌ</td>
+<td onclick="write_kanji ('フ');">フ</td>
+<td onclick="write_kanji ('ブ');">ブ</td>
+<td onclick="write_kanji ('プ');">プ</td>
+<td onclick="write_kanji ('ム');">ム</td>
+<td onclick="write_kanji ('ユ');">ユ</td>
+<td onclick="write_kanji ('ュ');">ュ</td>
+<td onclick="write_kanji ('ル');">ル</td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('ヴ');">ヴ</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('エ');">エ</td>
+<td onclick="write_kanji ('ェ');">ェ</td>
+<td onclick="write_kanji ('ケ');">ケ</td>
+<td onclick="write_kanji ('ゲ');">ゲ</td>
+<td onclick="write_kanji ('セ');">セ</td>
+<td onclick="write_kanji ('ゼ');">ゼ</td>
+<td onclick="write_kanji ('テ');">テ</td>
+<td onclick="write_kanji ('デ');">デ</td>
+<td onclick="write_kanji ('ネ');">ネ</td>
+<td onclick="write_kanji ('ヘ');">ヘ</td>
+<td onclick="write_kanji ('ベ');">ベ</td>
+<td onclick="write_kanji ('ペ');">ペ</td>
+<td onclick="write_kanji ('メ');">メ</td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('');"></td>
+<td onclick="write_kanji ('レ');">レ</td>
+<td onclick="write_kanji ('ヱ');">ヱ</td>
+<td onclick="write_kanji ('ー');">ー</td>
+</tr>
+<tr>
+<td onclick="write_kanji ('オ');">オ</td>
+<td onclick="write_kanji ('ォ');">ォ</td>
+<td onclick="write_kanji ('コ');">コ</td>
+<td onclick="write_kanji ('ゴ');">ゴ</td>
+<td onclick="write_kanji ('ソ');">ソ</td>
+<td onclick="write_kanji ('ゾ');">ゾ</td>
+<td onclick="write_kanji ('ト');">ト</td>
+<td onclick="write_kanji ('ド');">ド</td>
+<td onclick="write_kanji ('ノ');">ノ</td>
+<td onclick="write_kanji ('ホ');">ホ</td>
+<td onclick="write_kanji ('ボ');">ボ</td>
+<td onclick="write_kanji ('ポ');">ポ</td>
+<td onclick="write_kanji ('モ');">モ</td>
+<td onclick="write_kanji ('ヨ');">ヨ</td>
+<td onclick="write_kanji ('ョ');">ョ</td>
+<td onclick="write_kanji ('ロ');">ロ</td>
+<td onclick="write_kanji ('ヲ');">ヲ</td>
+<td onclick="write_kanji ('。');">。</td>
+</tr>
+</table>
+<p>
+To use this page, select the option "Accumulate characters as a string" on the
+<a href="option.html">Options</a> page.
+
+Click on a kana to input it. 
+
+To input katakana, click on <i>Katakana</i> above the keyboard.
+</p>
+
+
+
+
+
+<div style='border:dotted 3px;background:#CCF'>
+<h2>
+Messages
+</h2>
+<!-- 
+Use this for Android since it has no overflow ability.
+-->
+<!-- 
+<div id='status-cell'> 
+-->
+<div id='status-cell' style='height:200px;overflow-y:scroll;margin:10px;'>  
+</div>
+</div>
+<script>
+var ml = new Object ();ml.empty_search="There is nothing to search for.";
+</script>
+</body>
+</html>
+
+<!--
+Local variables:
+mode: html
+End:
+-->
