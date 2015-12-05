@@ -10,8 +10,8 @@ install: validate
 	cp validate $(INSTALLED)
 	chmod 0555 $(INSTALLED)
 
-validate: validate.go
-	go build validate.go
+validate: validate.go tag.go
+	go build validate.go tag.go
 
 clean:
 	-rm -f validate

@@ -9,86 +9,6 @@ import (
 	"os"
 )
 
-// Valid HTML tags
-
-var validTags = []string{
-	"big",
-	"blockquote",
-	"body",
-	"button",
-	"canvas",
-	"caption",
-	"del",
-	"div",
-	"dl",
-	"figcaption",
-	"figure",
-	"font",
-	"form",
-	"ins",
-	"label",
-	"li",
-	"noscript",
-	"ol",
-	"option",
-	"ref", // temp remove this just for sljfaq.ff checking.
-	"rp",
-	"rt",
-	"ruby",
-	"select",
-	"sup",
-	"table",
-	"tbody",
-	"td",
-	"textarea",
-	"th",
-	"tr",
-	"ul",
-}
-
-/* These tags do not need an ending tag like </p> */
-
-var noCloseTags = []string{
-	"area",
-	"br",
-	"dd",
-	"dt",
-	"hr",
-	"image",
-	"input",
-	"img",
-	"link",
-	"meta",
-}
-
-// These tags should not be nested, e.g. <p><p>. 
-
-var nonNestingTags = []string {
-	"a",
-	"b",
-	"center",
-	"code",
-	"em",
-	"h1",
-	"h2",
-	"h3",
-	"h4",
-	"head",
-	"html",
-	"i",
-	"map",
-	"p",
-	"pre",
-	"script",
-	"small",
-	"span",
-	"span",
-	"strong",
-	"strong",
-	"style",
-	"title",
-}
-
 var valid map[string]bool
 var noClose map[string]bool
 var nonNesting map[string]bool
@@ -125,6 +45,7 @@ type stringPos struct {
 	i int
 	line int
 	filename string
+	nletters int
 }
 
 func (sp *stringPos) String() string {
@@ -174,6 +95,7 @@ func findIds(ids map[string]lineTag, tag string, remaining string, sp * stringPo
 }
 
 func findTag(html string, sp * stringPos, open bool, ids map[string]lineTag) (tag string, err error) {
+//	fmt.Printf("letter=%d nletters=%d pos=%d len=%d\n", sp.i, sp.nletters, len(html), sp.position);
 	start := strings.IndexAny(html[sp.position:], " >\n")
 	if start == -1 {
 		return "", errors.New("No ending marker found")
@@ -241,13 +163,13 @@ func validate(html string, filename string, offset int) {
 	ids := make(map[string]lineTag)
 	var sp stringPos
 	split := strings.Split(html, "")
-	nletters := len(split)
+	sp.nletters = len(split)
 	// Number of the letter.
 	sp.i = 0
 	// The current line number.
 	sp.line = 1 + offset
 	sp.filename = filename
-	for sp.i < nletters {
+	for sp.i < sp.nletters {
 		c := split[sp.i]
 		switch c {
 		case "<":
@@ -382,8 +304,12 @@ func main() {
 		if err != nil {
 			fmt.Println("error file ",err)
 		} else {
-			s := string(buf)
-			validate (s, file, 0)
+			if utf8.Valid(buf) {
+				s := string(buf)
+				validate (s, file, 0)
+			} else {
+				fmt.Printf("%s is not UTF-8.\n", file);
+			}
 		}
 	}
 }
