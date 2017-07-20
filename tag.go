@@ -21,6 +21,7 @@ var validTags = []string{
 	"label",
 	"li",
 	"noscript",
+	"nobr",
 	"ol",
 	"option",
 	"rp",
