@@ -1,7 +1,6 @@
 all: validate
 #	./validate t/books2.html
 #	./validate t/soft-keyboard.html
-	./validate t/mr-old.html
 
 INSTALLED=/home/ben/bin/validate
 
@@ -12,6 +11,10 @@ install: validate
 
 validate: validate.go tag.go
 	go build validate.go tag.go
+
+
+test:
+	prove ./run-tests.pl
 
 clean:
 	-rm -f validate

@@ -95,12 +95,10 @@ func findIds(ids map[string]lineTag, tag string, remaining string, sp * stringPo
 }
 
 func findTag(html string, sp * stringPos, open bool, ids map[string]lineTag) (tag string, err error) {
-//	fmt.Printf("letter=%d nletters=%d pos=%d len=%d\n", sp.i, sp.nletters, len(html), sp.position);
 	start := strings.IndexAny(html[sp.position:], " >\n")
 	if start == -1 {
 		return "", errors.New("No ending marker found")
 	}
-//	fmt.Printf("%s %d %d\n",html[*position:], *position, start)
 	tag = html[(*sp).position:(*sp).position+start]
 	end := strings.IndexAny(html[(*sp).position:], ">")
 	if end == -1 {
@@ -173,7 +171,6 @@ func validate(html string, filename string, offset int) {
 		c := split[sp.i]
 		switch c {
 		case "<":
-//			fmt.Printf("%s:%d: tag.\n", filename, line)
 			sp.i++
 			sp.position += len(c)
 			c := split[sp.i]
@@ -190,10 +187,6 @@ func validate(html string, filename string, offset int) {
 					fmt.Printf("%s:%d: error %s\n",
 						filename, sp.line, err)
 				} else {
-/*
-					fmt.Printf("%s:%d: %s close tag %s\n",
-						filename, sp.line, c, tag)
-*/
 					delete (nestTags, tag)
 					var toptag lineTag
 					if len(opentags) > 0 {
@@ -252,17 +245,12 @@ func validate(html string, filename string, offset int) {
 					fmt.Printf("%s:%d: error %s\n",
 						filename, sp.line, err)
 				} else {
-//					fmt.Printf("%s:%d: open tag %s.\n", filename, sp.line, tag)
 					if ! noClose[tag] {
 						var lt lineTag
 						lt.tag = tag
 						lt.line = sp.line
 						opentags = append(opentags, lt)
 						if nonNesting[tag] {
-							/*
-							fmt.Printf("%s:%d: non-nesting tag %s\n",
-								filename, sp.line, tag);
-*/
 							previous, nested := nestTags[tag]
 							if nested {
 								fmt.Printf("%s:%d: nested <%s>.\n",
@@ -294,6 +282,7 @@ func validate(html string, filename string, offset int) {
 		}
 	}
 }
+
 //http://stackoverflow.com/questions/13514184/how-can-i-read-a-whole-file-into-a-string-variable-in-golang#13514395
 
 func main() {
