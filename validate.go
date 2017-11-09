@@ -83,8 +83,8 @@ func findIds(ids map[string]lineTag, tag string, remaining string, sp *stringPos
 				id = remaining[idequal+openquote+2 : idequal+openquote+2+closequote]
 				//				fmt.Printf("%s found id '%s'\n", sp, id);
 				if lt, exists := ids[id]; exists {
-					fmt.Printf("%s:%d: duplicate id '%s'\n",
-						sp.filename, sp.line, id)
+					fmt.Printf("%s duplicate id '%s'\n",
+						sp.String(), id)
 					fmt.Printf("%s:%d: previous instance in tag '%s'\n",
 						sp.filename, lt.line, lt.tag)
 				} else {
@@ -187,40 +187,40 @@ func validate(html string, filename string, offset int) {
 
 				tag, err := findTag(html, &sp, false, ids)
 				if err != nil {
-					fmt.Printf("%s:%d: error %s\n",
-						filename, sp.line, err)
+					fmt.Printf("%s error %s\n",
+						sp.String(), err)
 				} else {
 					delete(nestTags, tag)
 					var toptag lineTag
 					if len(opentags) > 0 {
 						opentags, toptag = opentags[:len(opentags)-1], opentags[len(opentags)-1]
 					} else {
-						fmt.Printf("%s:%d: too many closing tags.\n",
-							filename, sp.line)
+						fmt.Printf("%s too many closing tags.\n",
+							sp.String())
 					}
 					if toptag.tag != tag {
 						closed := false
 						for scrape := len(opentags) - 1; scrape >= 0; scrape-- {
 							scrapeTag := opentags[scrape]
 							if scrapeTag.tag == tag {
-								fmt.Printf("%s:%d: tag mismatch: <%s> </%s>: ",
-									filename, sp.line, toptag.tag, tag)
+								fmt.Printf("%s tag mismatch: <%s> </%s>: ",
+									sp.String(), toptag.tag, tag)
 								fmt.Printf("popping %d unclosed tags.\n",
 									len(opentags)-scrape)
 								for i := scrape + 1; i < len(opentags); i++ {
 									fmt.Printf("%s:%d: <%s> unclosed.\n",
-										filename, opentags[i].line, opentags[i].tag)
+										sp.filename, opentags[i].line, opentags[i].tag)
 								}
 								fmt.Printf("%s:%d: <%s> unclosed.\n",
-									filename, toptag.line, toptag.tag)
+									sp.filename, toptag.line, toptag.tag)
 								opentags = opentags[:scrape]
 								closed = true
 								break
 							}
 						}
 						if !closed {
-							fmt.Printf("%s:%d: closing tag </%s> with no opening tag.\n",
-								filename, sp.line, tag)
+							fmt.Printf("%s closing tag </%s> with no opening tag.\n",
+								sp.String(), tag)
 							// Push the last thing back on there.
 							opentags = append(opentags, toptag)
 						}
@@ -228,24 +228,24 @@ func validate(html string, filename string, offset int) {
 
 				}
 			case " ":
-				fmt.Printf("%s:%d: space character after <.\n",
-					filename, sp.line)
+				fmt.Printf("%s space character after <.\n",
+					sp.String())
 			case "!":
 				sp.Add(c)
 				err := skipComment(html, &sp)
 				if err != nil {
-					fmt.Printf("%s:%d: error %s\n",
-						filename, sp.line, err)
+					fmt.Printf("%s error %s\n",
+						sp.String(), err)
 				}
 			default:
 				tag, err := findTag(html, &sp, true, ids)
 				if !valid[tag] {
-					fmt.Printf("%s:%d: unknown tag <%s>.\n",
-						filename, sp.line, tag)
+					fmt.Printf("%s unknown tag <%s>.\n",
+						sp.String(), tag)
 				}
 				if err != nil {
-					fmt.Printf("%s:%d: error %s\n",
-						filename, sp.line, err)
+					fmt.Printf("%s error %s\n",
+						sp.String(), err)
 				} else {
 					if !noClose[tag] {
 						var lt lineTag
@@ -255,10 +255,10 @@ func validate(html string, filename string, offset int) {
 						if nonNesting[tag] {
 							previous, nested := nestTags[tag]
 							if nested {
-								fmt.Printf("%s:%d: nested <%s>.\n",
-									filename, sp.line, tag)
+								fmt.Printf("%s nested <%s>.\n",
+									sp.String(), tag)
 								fmt.Printf("%s:%d: first <%s> is here.\n",
-									filename, previous.line, tag)
+									sp.filename, previous.line, tag)
 							} else {
 								nestTags[tag] = lt
 							}
@@ -279,7 +279,7 @@ func validate(html string, filename string, offset int) {
 	if len(opentags) > 0 {
 		fmt.Printf("There are %d unclosed tags:\n", len(opentags))
 		for i := 0; i < len(opentags); i++ {
-			fmt.Printf("%s:%d: <%s>\n", filename, opentags[i].line, opentags[i].tag)
+			fmt.Printf("%s:%d: <%s>\n", sp.filename, opentags[i].line, opentags[i].tag)
 		}
 	}
 }
