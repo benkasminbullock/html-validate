@@ -292,14 +292,14 @@ func main() {
 		buf, err := ioutil.ReadFile(file)
 		if err != nil {
 			fmt.Println("error file ",err)
-		} else {
-			if utf8.Valid(buf) {
-				s := string(buf)
-				validate (s, file, 0)
-			} else {
-				fmt.Printf("%s is not UTF-8.\n", file);
-			}
+			continue;
 		}
+		if ! utf8.Valid(buf) {
+			fmt.Printf("%s is not UTF-8.\n", file);
+			continue;
+		}
+		s := string(buf)
+		validate (s, file, 0)
 	}
 }
 
