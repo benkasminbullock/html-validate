@@ -1,3 +1,5 @@
+/* Validate HTML. */
+
 package main
 
 import (
@@ -8,10 +10,6 @@ import (
 	"strings"
 	"unicode/utf8"
 )
-
-var valid map[string]bool
-var noClose map[string]bool
-var nonNesting map[string]bool
 
 type lineTag struct {
 	tag  string
@@ -28,10 +26,16 @@ func makeMap(list []string) (z map[string]bool) {
 
 /* Set up all the tables for validation. */
 
+var valid map[string]bool
+var noClose map[string]bool
+var nonNesting map[string]bool
+var nonEmpty map[string]bool
+
 func initValid() {
 	valid = makeMap(validTags)
 	noClose = makeMap(noCloseTags)
 	nonNesting = makeMap(nonNestingTags)
+	nonEmpty = makeMap(nonEmptyTags)
 	for _, tag := range noCloseTags {
 		valid[tag] = true
 	}
@@ -51,6 +55,7 @@ type stringPos struct {
 func (sp *stringPos) String() string {
 	return fmt.Sprintf("%s:%d:", sp.filename, sp.line)
 }
+
 func (sp *stringPos) Add(c string) {
 	sp.i++
 	sp.position += len(c)
@@ -62,10 +67,6 @@ func (sp *stringPos) Add(c string) {
 func jumpover(html string, jumpbytes int, sp *stringPos) {
 	jump := html[(*sp).position : (*sp).position+jumpbytes]
 	addlines := strings.Count(jump, "\n")
-	/*
-		fmt.Printf("Jumping over '%s'.\n", jump)
-		fmt.Printf("Adding %d lines.\n", addlines)
-	*/
 	sp.line += addlines
 	sp.i += utf8.RuneCountInString(jump)
 	sp.position += jumpbytes
@@ -81,7 +82,6 @@ func findIds(ids map[string]lineTag, tag string, remaining string, sp *stringPos
 			closequote := strings.IndexAny(remaining[idequal+openquote+2:], "\"'")
 			if closequote != -1 {
 				id = remaining[idequal+openquote+2 : idequal+openquote+2+closequote]
-				//				fmt.Printf("%s found id '%s'\n", sp, id);
 				if lt, exists := ids[id]; exists {
 					fmt.Printf("%s duplicate id '%s'\n",
 						sp.String(), id)
@@ -189,7 +189,8 @@ func validate(html string, filename string, offset int) {
 				if err != nil {
 					fmt.Printf("%s error %s\n",
 						sp.String(), err)
-				} else {
+					break
+				}
 					delete(nestTags, tag)
 					var toptag lineTag
 					if len(opentags) > 0 {
@@ -226,7 +227,7 @@ func validate(html string, filename string, offset int) {
 						}
 					}
 
-				}
+				
 			case " ":
 				fmt.Printf("%s space character after <.\n",
 					sp.String())

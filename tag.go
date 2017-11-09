@@ -1,3 +1,5 @@
+// This is a hand-edited list. make-valid-tags.pl does not work yet.
+
 package main
 
 // Valid HTML tags
@@ -81,3 +83,7 @@ var nonNestingTags = []string {
 	"title",
 }
 
+var nonEmptyTags = []string {
+"p",
+"a",
+}

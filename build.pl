@@ -5,5 +5,5 @@ use utf8;
 use FindBin '$Bin';
 use Perl::Build;
 perl_build (
-makefile => 'Makefile',
+    makefile => 'Makefile',
 );
