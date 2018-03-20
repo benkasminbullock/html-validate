@@ -191,43 +191,43 @@ func validate(html string, filename string, offset int) {
 						sp.String(), err)
 					break
 				}
-					delete(nestTags, tag)
-					var toptag lineTag
-					if len(opentags) > 0 {
-						opentags, toptag = opentags[:len(opentags)-1], opentags[len(opentags)-1]
-					} else {
-						fmt.Printf("%s too many closing tags.\n",
-							sp.String())
-					}
-					if toptag.tag != tag {
-						closed := false
-						for scrape := len(opentags) - 1; scrape >= 0; scrape-- {
-							scrapeTag := opentags[scrape]
-							if scrapeTag.tag == tag {
-								fmt.Printf("%s tag mismatch: <%s> </%s>: ",
-									sp.String(), toptag.tag, tag)
-								fmt.Printf("popping %d unclosed tags.\n",
-									len(opentags)-scrape)
-								for i := scrape + 1; i < len(opentags); i++ {
-									fmt.Printf("%s:%d: <%s> unclosed.\n",
-										sp.filename, opentags[i].line, opentags[i].tag)
-								}
+				delete(nestTags, tag)
+				var toptag lineTag
+				if len(opentags) > 0 {
+					opentags, toptag = opentags[:len(opentags)-1], opentags[len(opentags)-1]
+				} else {
+					fmt.Printf("%s too many closing tags.\n",
+						sp.String())
+				}
+				if toptag.tag != tag {
+					closed := false
+					for scrape := len(opentags) - 1; scrape >= 0; scrape-- {
+						scrapeTag := opentags[scrape]
+						if scrapeTag.tag == tag {
+							fmt.Printf("%s tag mismatch: <%s> </%s>: ",
+								sp.String(), toptag.tag, tag)
+							fmt.Printf("popping %d unclosed tags.\n",
+								len(opentags)-scrape)
+							for i := scrape + 1; i < len(opentags); i++ {
 								fmt.Printf("%s:%d: <%s> unclosed.\n",
-									sp.filename, toptag.line, toptag.tag)
-								opentags = opentags[:scrape]
-								closed = true
-								break
+									sp.filename, opentags[i].line, opentags[i].tag)
 							}
-						}
-						if !closed {
-							fmt.Printf("%s closing tag </%s> with no opening tag.\n",
-								sp.String(), tag)
-							// Push the last thing back on there.
-							opentags = append(opentags, toptag)
+							fmt.Printf("%s:%d: <%s> unclosed.\n",
+								sp.filename, toptag.line, toptag.tag)
+							opentags = opentags[:scrape]
+							closed = true
+							break
 						}
 					}
+					if !closed {
+						fmt.Printf("%s closing tag </%s> with no opening tag.\n",
+							sp.String(), tag)
+						// Push the last thing back on there.
+						opentags = append(opentags, toptag)
+					}
+				}
 
-				
+
 			case " ":
 				fmt.Printf("%s space character after <.\n",
 					sp.String())
