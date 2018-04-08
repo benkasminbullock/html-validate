@@ -1,4 +1,4 @@
-// This is a hand-edited list. make-valid-tags.pl does not work yet.
+// This is a hand-edited list. make-tag-go.pl does not work yet.
 
 package main
 
@@ -81,6 +81,8 @@ var nonNestingTags = []string {
 	"strong",
 	"style",
 	"title",
+	"ul",
+	"ol",
 }
 
 var nonEmptyTags = []string {

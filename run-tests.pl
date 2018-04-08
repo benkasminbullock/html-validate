@@ -13,9 +13,13 @@ my $errors = "$outtmpl.errors.$$";
 clean ();
 checkold ();
 my @files = ("t/mr-old.html");
+my $bin = "$Bin/validate";
+if (! -f $bin || ! -x $bin) {
+    die "No $bin; need to rebuild";
+}
 for my $file (@files) {
     die unless -f $file;
-    do_system ("./validate $file > $output 2> $errors");
+    do_system ("$bin $file > $output 2> $errors");
     ok (-f $output, "got output");
     ok (! -s $errors, "no errors");
     my $text = read_text ($output);
