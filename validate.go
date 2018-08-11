@@ -16,6 +16,8 @@ type lineTag struct {
 	line int
 }
 
+/* Make a map of valid words. */
+
 func makeMap(list []string) (z map[string]bool) {
 	z = make(map[string]bool)
 	for _, tag := range list {
@@ -31,7 +33,9 @@ var noClose map[string]bool
 var nonNesting map[string]bool
 var nonEmpty map[string]bool
 
-func initValid() {
+/* Initialise the tables of tags. */
+
+func initTagTables() {
 	valid = makeMap(validTags)
 	noClose = makeMap(noCloseTags)
 	nonNesting = makeMap(nonNestingTags)
@@ -43,6 +47,9 @@ func initValid() {
 		valid[tag] = true
 	}
 }
+
+/* A store of the current position within a string, used for
+   navigating within HTML. */
 
 type stringPos struct {
 	position int
@@ -72,9 +79,12 @@ func jumpover(html string, jumpbytes int, sp *stringPos) {
 	sp.position += jumpbytes
 }
 
+/* Find instances of tag IDs. */
+
 func findIds(ids map[string]lineTag, tag string, remaining string, sp *stringPos) {
 	// The located ID.
 	var id string
+	// This should allow for spaces, shouldn't it?
 	idequal := strings.Index(remaining, "id=")
 	if idequal != -1 {
 		openquote := strings.IndexAny(remaining[idequal+1:], "\"'")
@@ -158,7 +168,10 @@ func skipScript(html string, sp *stringPos) (err error) {
 	return
 }
 
-func validate(html string, filename string, offset int) {
+/* Validate the HTML in "html", which comes from a file with the name
+   "filename". */
+
+func validate(html string, filename string) {
 	var opentags []lineTag
 	nestTags := make(map[string]lineTag)
 	// id= things within HTML opening tags.
@@ -169,7 +182,7 @@ func validate(html string, filename string, offset int) {
 	// Number of the letter.
 	sp.i = 0
 	// The current line number.
-	sp.line = 1 + offset
+	sp.line = 1
 	sp.filename = filename
 	for sp.i < sp.nletters {
 		c := split[sp.i]
@@ -226,7 +239,6 @@ func validate(html string, filename string, offset int) {
 						opentags = append(opentags, toptag)
 					}
 				}
-
 
 			case " ":
 				fmt.Printf("%s space character after <.\n",
@@ -286,7 +298,7 @@ func validate(html string, filename string, offset int) {
 }
 
 func main() {
-	initValid()
+	initTagTables()
 	for i := 1; i < len(os.Args); i++ {
 		//http://stackoverflow.com/questions/13514184/how-can-i-read-a-whole-file-into-a-string-variable-in-golang#13514395
 		file := os.Args[i]
@@ -296,10 +308,11 @@ func main() {
 			continue
 		}
 		if !utf8.Valid(buf) {
-			fmt.Printf("%s is not UTF-8.\n", file)
+			// This should be printing to stderr, not stdout.
+			fmt.Fprintf(os.Stderr, "%s is not UTF-8.\n", file)
 			continue
 		}
 		s := string(buf)
-		validate(s, file, 0)
+		validate(s, file)
 	}
 }
