@@ -8,12 +8,17 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
 type lineTag struct {
-	tag  string
+	// The tag's name, like "html" for the <html> tag.
+	tag string
+	// The line number of the tag, so we can give good error messages.
 	line int
+	// The position of the tag within the string.
+	position int
 }
 
 /* Make a map of valid words. */
@@ -52,16 +57,26 @@ func initTagTables() {
    navigating within HTML. */
 
 type stringPos struct {
+	// Position we are currently examining within the string
 	position int
-	i        int
-	line     int
+	// The number of the letter we are currently examining.
+	i int
+	// Line number within the string
+	line int
+	// File associated with the string
 	filename string
+	// The total number of letters in the string
 	nletters int
 }
+
+// Show the file name and line number of the current position of "sp".
 
 func (sp *stringPos) String() string {
 	return fmt.Sprintf("%s:%d:", sp.filename, sp.line)
 }
+
+// Add the length of the string "c" to the position field of "sp" and
+// increment the number of characters sp.i.
 
 func (sp *stringPos) Add(c string) {
 	sp.i++
@@ -172,6 +187,7 @@ func skipScript(html string, sp *stringPos) (err error) {
    "filename". */
 
 func validate(html string, filename string) {
+	// The stack of currently open tags.
 	var opentags []lineTag
 	nestTags := make(map[string]lineTag)
 	// id= things within HTML opening tags.
@@ -188,13 +204,14 @@ func validate(html string, filename string) {
 		c := split[sp.i]
 		switch c {
 		case "<":
+			// Start of an HTML tag
 			sp.Add(c)
 			c := split[sp.i]
 			switch c {
 			case "/":
 
 				/* Closing tag, pop the stack "opentags" to find a
-				/* match. */
+				   match. */
 
 				sp.Add(c)
 
@@ -207,8 +224,10 @@ func validate(html string, filename string) {
 				delete(nestTags, tag)
 				var toptag lineTag
 				if len(opentags) > 0 {
+					// Pop one tag
 					opentags, toptag = opentags[:len(opentags)-1], opentags[len(opentags)-1]
 				} else {
+					// There are no closing tags left
 					fmt.Printf("%s too many closing tags.\n",
 						sp.String())
 				}
@@ -239,6 +258,20 @@ func validate(html string, filename string) {
 						opentags = append(opentags, toptag)
 					}
 				}
+				if nonEmpty[tag] {
+					var j int
+					empty := true
+					for j = toptag.position + 1; j < sp.position-3; j++ {
+//						fmt.Printf("%d %c\n", j, html[j])
+						if !unicode.IsSpace(rune(html[j])) {
+							empty = false
+						}
+					}
+					if empty {
+						fmt.Printf("%s:%d: empty %s tag.\n",
+							sp.filename, toptag.line, tag)
+					}
+				}
 
 			case " ":
 				fmt.Printf("%s space character after <.\n",
@@ -251,6 +284,8 @@ func validate(html string, filename string) {
 						sp.String(), err)
 				}
 			default:
+				// Open tag, consume the whole tag then decide what to
+				// do with it.
 				tag, err := findTag(html, &sp, true, ids)
 				if !valid[tag] {
 					fmt.Printf("%s unknown tag <%s>.\n",
@@ -264,6 +299,7 @@ func validate(html string, filename string) {
 						var lt lineTag
 						lt.tag = tag
 						lt.line = sp.line
+						lt.position = sp.position
 						opentags = append(opentags, lt)
 						if nonNesting[tag] {
 							previous, nested := nestTags[tag]
@@ -283,16 +319,19 @@ func validate(html string, filename string) {
 				}
 			}
 		case "\n":
+			// End of a line, increment the line number
 			sp.line++
 			fallthrough
 		default:
+			// Add this string to the position.
 			sp.Add(c)
 		}
 	}
 	if len(opentags) > 0 {
 		fmt.Printf("There are %d unclosed tags:\n", len(opentags))
 		for i := 0; i < len(opentags); i++ {
-			fmt.Printf("%s:%d: <%s>\n", sp.filename, opentags[i].line, opentags[i].tag)
+			fmt.Printf("%s:%d: <%s>\n", sp.filename, opentags[i].line,
+				opentags[i].tag)
 		}
 	}
 }
