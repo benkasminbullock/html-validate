@@ -261,7 +261,7 @@ func validate(html string, filename string) {
 				if nonEmpty[tag] {
 					var j int
 					empty := true
-					for j = toptag.position + 1; j < sp.position-3; j++ {
+					for j = toptag.position + 1; j < sp.position-2 - len(tag); j++ {
 //						fmt.Printf("%d %c\n", j, html[j])
 						if !unicode.IsSpace(rune(html[j])) {
 							empty = false
