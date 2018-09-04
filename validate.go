@@ -288,7 +288,7 @@ func validate(html string, filename string) {
 				// do with it.
 				tag, err := findTag(html, &sp, true, ids)
 				if !valid[tag] {
-					fmt.Printf("%s unknown tag <%s>.\n",
+					fmt.Printf("%s invalid tag <%s>.\n",
 						sp.String(), tag)
 				}
 				if err != nil {

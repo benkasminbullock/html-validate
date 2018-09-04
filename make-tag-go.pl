@@ -4,6 +4,7 @@ use strict;
 use utf8;
 use FindBin '$Bin';
 use HTML::Valid::Tagset ':all';
+if (0) {
 for my $tag (@allTags) {
     if ($isHTML5{$tag}) {
 	print $tag;
@@ -34,3 +35,9 @@ for my $tag (@allTags) {
 	print "\n";
     }
 }
+}
+my @empty = keys %emptyElement;
+@empty = grep {$isHTML5{$_}} @empty;
+print "var noCloseTags = []string{\n    \"";
+print join "\",\n    \"", sort @empty;
+print "\",\n}\n\n";

@@ -14,6 +14,8 @@ var validTags = []string{
 	"del",
 	"div",
 	"dl",
+	"dd",
+	"dt",
 	"figcaption",
 	"figure",
 	"font",
@@ -46,8 +48,6 @@ var validTags = []string{
 var noCloseTags = []string{
 	"area",
 	"br",
-	"dd",
-	"dt",
 	"hr",
 	"image",
 	"input",
@@ -81,11 +81,9 @@ var nonNestingTags = []string {
 	"strong",
 	"style",
 	"title",
-	"ul",
-	"ol",
 }
 
 var nonEmptyTags = []string {
 "p",
-"a",
+//"a",
 }
