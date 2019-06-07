@@ -41,6 +41,7 @@ var validTags = []string{
 	"th",
 	"tr",
 	"ul",
+	"u",
 }
 
 /* These tags do not need an ending tag like </p> */
