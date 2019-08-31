@@ -6,6 +6,8 @@ use FindBin '$Bin';
 use Deploy 'do_system';
 use File::Slurper 'read_text';
 use Test::More;
+# Switch on or off debugging flags
+my $verbose = 1;
 # globals
 my $outtmpl = "$Bin/validate-test-out";
 my $output = "$outtmpl.$$";
@@ -15,7 +17,10 @@ checkold ();
 my @files = ("t/mr-old.html");
 my $bin = "$Bin/validate";
 if (! -f $bin || ! -x $bin) {
-    die "No $bin; need to rebuild";
+    if ($verbose) {
+	print "Rebuilding $bin.\n";
+    }
+    do_system ("make validate", $verbose);
 }
 for my $file (@files) {
     die unless -f $file;

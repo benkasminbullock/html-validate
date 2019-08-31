@@ -1,4 +1,8 @@
 #!/home/ben/software/install/bin/perl
+
+# This uses the list of tags in HTML::Valid::Tagset to get information
+# about tags.
+
 use warnings;
 use strict;
 use utf8;
