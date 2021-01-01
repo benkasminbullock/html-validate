@@ -1,0 +1,10 @@
+This is a validator for HTML files which checks for unclosed tags,
+tags which are nested but should not be, empty tags (tags with nothing
+between the start and the finish) and whether the file is valid UTF-8.
+
+The programming language is Go. There is a Makefile, but you can
+probably build the binary by typing "go build" in this directory.
+
+There are some tests in the t directory which are run using
+run-tests.pl (Perl) in this directory.
+
