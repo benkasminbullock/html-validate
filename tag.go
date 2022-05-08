@@ -45,6 +45,7 @@ var validTags = []string{
 	"sub",
 	"summary",
 	"sup",
+	"svg",
 	"table",
 	"tbody",
 	"td",
@@ -67,11 +68,12 @@ var noCloseTags = []string{
 	"img",
 	"link",
 	"meta",
+	"path",
 }
 
-// These tags should not be nested, e.g. <p><p>. 
+// These tags should not be nested, e.g. <p><p>.
 
-var nonNestingTags = []string {
+var nonNestingTags = []string{
 	"a",
 	"b",
 	"center",
@@ -95,7 +97,7 @@ var nonNestingTags = []string {
 	"title",
 }
 
-var nonEmptyTags = []string {
-"p",
-//"a",
+var nonEmptyTags = []string{
+	"p",
+	//"a",
 }
