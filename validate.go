@@ -119,17 +119,29 @@ func findIds(ids map[string]lineTag, tag string, remaining string, sp *stringPos
 }
 
 // Find the next HTML tag
-func findTag(html string, sp *stringPos, open bool, ids map[string]lineTag) (tag string, err error) {
-	start := strings.IndexAny(html[sp.position:], " >\n")
+func findTag(html string, sp *stringPos, open bool, ids map[string]lineTag) (tag string, selfClosing bool, err error) {
+	p := sp.position
+	start := strings.IndexAny(html[p:], " >\n")
 	if start == -1 {
-		return "", errors.New("No ending marker found")
+		return "", false, errors.New("No ending marker found")
 	}
-	tag = html[(*sp).position : (*sp).position+start]
-	end := strings.IndexAny(html[(*sp).position:], ">")
+	tag = html[p : p+start]
+	end := strings.IndexAny(html[p:], ">")
 	if end == -1 {
-		return "", errors.New("No > after <")
+		return "", false, errors.New("No > after <")
 	}
-
+	if open {
+		selfend := strings.Index(html[p:p+end+1], "/>")
+		if selfend > -1 {
+			if debug {
+				dbgmsg("Self-closing tag\n")
+			}
+			selfClosing = true
+			if html[p+start-1] == '/' {
+				tag = html[p : p+start-1]
+			}
+		}
+	}
 	// ids as nil is used for end tags.
 	if open && start+1 < end {
 		remaining := html[sp.position+start+1 : sp.position+end]
@@ -138,7 +150,8 @@ func findTag(html string, sp *stringPos, open bool, ids map[string]lineTag) (tag
 		}
 	}
 	jumpover(html, end, sp)
-	return tag, err
+	tag = strings.ToLower(tag)
+	return tag, selfClosing, err
 }
 
 // Skip over HTML comments or doctype declarations.
@@ -193,6 +206,7 @@ func (opentags *tagStack) Push(toptag lineTag) {
 // Given a closing tag "tag", close it, and any unopened tags, and
 // report errors on the unclosed tags.
 func (opentags *tagStack) CloseOpenTags(sp stringPos, tag string) (toptag lineTag) {
+	tag = strings.ToLower(tag)
 	if len(*opentags) == 0 {
 		fmt.Printf("%s: there were too many closing tags.\n", sp.String())
 		return toptag
@@ -273,7 +287,7 @@ func validate(html string, filename string) {
 				// The current tag was a closing tag, so pop the stack
 				// "opentags" to find a match.
 				sp.Add(c)
-				tag, err := findTag(html, &sp, false, ids)
+				tag, _, err := findTag(html, &sp, false, ids)
 				if err != nil {
 					fmt.Printf("%s error %s\n",
 						sp.String(), err)
@@ -313,7 +327,7 @@ func validate(html string, filename string) {
 			default:
 				// Open tag, consume the whole tag then decide what to
 				// do with it.
-				tag, err := findTag(html, &sp, true, ids)
+				tag, selfClosing, err := findTag(html, &sp, true, ids)
 				if !valid[tag] {
 					fmt.Printf("%s invalid tag <%s>.\n",
 						sp.String(), tag)
@@ -324,6 +338,12 @@ func validate(html string, filename string) {
 					break
 				}
 				if noClose[tag] {
+					break
+				}
+				if selfClosing {
+					if debug {
+						dbgmsg("Self-closing <%s/>", tag)
+					}
 					break
 				}
 				if debug {
