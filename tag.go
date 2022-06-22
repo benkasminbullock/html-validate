@@ -25,6 +25,7 @@ var validTags = []string{
 	"footer",
 	"form",
 	"header",
+	"iframe",
 	"ins",
 	"kbd",
 	"label",

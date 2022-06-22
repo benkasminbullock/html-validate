@@ -4,6 +4,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,8 +22,7 @@ type lineTag struct {
 	position int
 }
 
-/* Make a map of valid words. */
-
+// Make a map of valid words.
 func makeMap(list []string) (z map[string]bool) {
 	z = make(map[string]bool)
 	for _, tag := range list {
@@ -38,8 +38,7 @@ var noClose map[string]bool
 var nonNesting map[string]bool
 var nonEmpty map[string]bool
 
-/* Initialise the tables of tags. */
-
+// Initialise the tables of tags.
 func initTagTables() {
 	valid = makeMap(validTags)
 	noClose = makeMap(noCloseTags)
@@ -70,22 +69,19 @@ type stringPos struct {
 }
 
 // Show the file name and line number of the current position of "sp".
-
 func (sp *stringPos) String() string {
 	return fmt.Sprintf("%s:%d:", sp.filename, sp.line)
 }
 
 // Add the length of the string "c" to the position field of "sp" and
 // increment the number of characters sp.i.
-
 func (sp *stringPos) Add(c string) {
 	sp.i++
 	sp.position += len(c)
 }
 
-// Jump over jumpbytes bytes, adjusting the strings and counting
+// Jump over "jumpbytes" bytes, adjusting the strings and counting
 // newlines.
-
 func jumpover(html string, jumpbytes int, sp *stringPos) {
 	jump := html[(*sp).position : (*sp).position+jumpbytes]
 	addlines := strings.Count(jump, "\n")
@@ -94,8 +90,7 @@ func jumpover(html string, jumpbytes int, sp *stringPos) {
 	sp.position += jumpbytes
 }
 
-/* Find instances of tag IDs. */
-
+// Find instances of tag IDs.
 func findIds(ids map[string]lineTag, tag string, remaining string, sp *stringPos) {
 	// The located ID.
 	var id string
@@ -123,6 +118,7 @@ func findIds(ids map[string]lineTag, tag string, remaining string, sp *stringPos
 	}
 }
 
+// Find the next HTML tag
 func findTag(html string, sp *stringPos, open bool, ids map[string]lineTag) (tag string, err error) {
 	start := strings.IndexAny(html[sp.position:], " >\n")
 	if start == -1 {
@@ -145,8 +141,7 @@ func findTag(html string, sp *stringPos, open bool, ids map[string]lineTag) (tag
 	return tag, err
 }
 
-/* Skip over HTML comments or doctype declarations. */
-
+// Skip over HTML comments or doctype declarations.
 func skipComment(html string, sp *stringPos) (err error) {
 	var end int
 	start := html[sp.position:]
@@ -167,8 +162,7 @@ func skipComment(html string, sp *stringPos) (err error) {
 	return
 }
 
-/* Skip over <script>..</script>. */
-
+// Skip over <script>..</script>.
 func skipScript(html string, sp *stringPos) (err error) {
 	var end int
 	start := html[sp.position:]
@@ -183,12 +177,78 @@ func skipScript(html string, sp *stringPos) (err error) {
 	return
 }
 
-/* Validate the HTML in "html", which comes from a file with the name
-   "filename". */
+type tagStack []lineTag
 
+func (opentags *tagStack) Pop() (toptag lineTag) {
+	n := len(*opentags)
+	toptag = (*opentags)[n-1]
+	*opentags = (*opentags)[:n-1]
+	return toptag
+}
+
+func (opentags *tagStack) Push(toptag lineTag) {
+	*opentags = append(*opentags, toptag)
+}
+
+// Given a closing tag "tag", close it, and any unopened tags, and
+// report errors on the unclosed tags.
+func (opentags *tagStack) CloseOpenTags(sp stringPos, tag string) (toptag lineTag) {
+	if len(*opentags) == 0 {
+		fmt.Printf("%s: there were too many closing tags.\n", sp.String())
+		return toptag
+	}
+	// Pop one tag
+	toptag = opentags.Pop()
+	if toptag.tag == tag {
+		// The tag at the top of the stack was the one we expected, so
+		// we have finished without finding an error.
+		return toptag
+	}
+	closed := false
+	n := len(*opentags)
+	for scrape := n - 1; scrape >= 0; scrape-- {
+		scrapeTag := (*opentags)[scrape]
+		if scrapeTag.tag == tag {
+			fmt.Printf("%s tag mismatch: <%s> </%s>: ",
+				sp.String(), toptag.tag, tag)
+			unclosed := n - scrape
+			fmt.Printf("popping %d unclosed tags.\n", unclosed)
+			debugDepth -= unclosed
+			for i := 0; i < unclosed; i++ {
+				unctag := (*opentags).Pop()
+				fmt.Printf("\t%s:%d: <%s> unclosed.\n",
+					sp.filename, unctag.line, unctag.tag)
+			}
+			fmt.Printf("%s:%d: <%s> unclosed.\n",
+				sp.filename, toptag.line, toptag.tag)
+			closed = true
+			break
+		}
+	}
+	if !closed {
+		fmt.Printf("%s closing tag </%s> with no opening tag.\n",
+			sp.String(), tag)
+		opentags.Push(toptag)
+	}
+	return toptag
+}
+
+var debug = false
+var debugDepth = 0
+
+func dbgmsg(format string, a ...any) {
+	for i := 0; i < debugDepth; i++ {
+		fmt.Print("\t")
+	}
+	fmt.Printf(format, a...)
+	fmt.Print("\n")
+}
+
+// Validate the HTML in "html", which comes from a file with the name
+// "filename".
 func validate(html string, filename string) {
 	// The stack of currently open tags.
-	var opentags []lineTag
+	var opentags tagStack
 	nestTags := make(map[string]lineTag)
 	// id= things within HTML opening tags.
 	ids := make(map[string]lineTag)
@@ -210,67 +270,34 @@ func validate(html string, filename string) {
 			switch c {
 			case "/":
 
-				/* Closing tag, pop the stack "opentags" to find a
-				   match. */
-
+				// The current tag was a closing tag, so pop the stack
+				// "opentags" to find a match.
 				sp.Add(c)
-
 				tag, err := findTag(html, &sp, false, ids)
 				if err != nil {
 					fmt.Printf("%s error %s\n",
 						sp.String(), err)
 					break
 				}
+				if debug {
+					debugDepth--
+					dbgmsg("Closing </%s>", tag)
+				}
 				delete(nestTags, tag)
-				var toptag lineTag
-				if len(opentags) > 0 {
-					// Pop one tag
-					opentags, toptag = opentags[:len(opentags)-1], opentags[len(opentags)-1]
-				} else {
-					// There are no closing tags left
-					fmt.Printf("%s too many closing tags.\n",
-						sp.String())
+				toptag := opentags.CloseOpenTags(sp, tag)
+				if !nonEmpty[tag] {
+					break
 				}
-				if toptag.tag != tag {
-					closed := false
-					for scrape := len(opentags) - 1; scrape >= 0; scrape-- {
-						scrapeTag := opentags[scrape]
-						if scrapeTag.tag == tag {
-							fmt.Printf("%s tag mismatch: <%s> </%s>: ",
-								sp.String(), toptag.tag, tag)
-							fmt.Printf("popping %d unclosed tags.\n",
-								len(opentags)-scrape)
-							for i := scrape + 1; i < len(opentags); i++ {
-								fmt.Printf("%s:%d: <%s> unclosed.\n",
-									sp.filename, opentags[i].line, opentags[i].tag)
-							}
-							fmt.Printf("%s:%d: <%s> unclosed.\n",
-								sp.filename, toptag.line, toptag.tag)
-							opentags = opentags[:scrape]
-							closed = true
-							break
-						}
-					}
-					if !closed {
-						fmt.Printf("%s closing tag </%s> with no opening tag.\n",
-							sp.String(), tag)
-						// Push the last thing back on there.
-						opentags = append(opentags, toptag)
+				var j int
+				empty := true
+				for j = toptag.position + 1; j < sp.position-2-len(tag); j++ {
+					if !unicode.IsSpace(rune(html[j])) {
+						empty = false
 					}
 				}
-				if nonEmpty[tag] {
-					var j int
-					empty := true
-					for j = toptag.position + 1; j < sp.position-2-len(tag); j++ {
-						//						fmt.Printf("%d %c\n", j, html[j])
-						if !unicode.IsSpace(rune(html[j])) {
-							empty = false
-						}
-					}
-					if empty {
-						fmt.Printf("%s:%d: empty %s tag.\n",
-							sp.filename, toptag.line, tag)
-					}
+				if empty {
+					fmt.Printf("%s:%d: empty %s tag.\n",
+						sp.filename, toptag.line, tag)
 				}
 
 			case " ":
@@ -294,24 +321,29 @@ func validate(html string, filename string) {
 				if err != nil {
 					fmt.Printf("%s error %s\n",
 						sp.String(), err)
-				} else {
-					if !noClose[tag] {
-						var lt lineTag
-						lt.tag = tag
-						lt.line = sp.line
-						lt.position = sp.position
-						opentags = append(opentags, lt)
-						if nonNesting[tag] {
-							previous, nested := nestTags[tag]
-							if nested {
-								fmt.Printf("%s nested <%s>.\n",
-									sp.String(), tag)
-								fmt.Printf("%s:%d: first <%s> is here.\n",
-									sp.filename, previous.line, tag)
-							} else {
-								nestTags[tag] = lt
-							}
-						}
+					break
+				}
+				if noClose[tag] {
+					break
+				}
+				if debug {
+					dbgmsg("Opening <%s>", tag)
+					debugDepth++
+				}
+				var lt lineTag
+				lt.tag = tag
+				lt.line = sp.line
+				lt.position = sp.position
+				opentags.Push(lt)
+				if nonNesting[tag] {
+					previous, nested := nestTags[tag]
+					if nested {
+						fmt.Printf("%s nested <%s>.\n",
+							sp.String(), tag)
+						fmt.Printf("%s:%d: first <%s> is here.\n",
+							sp.filename, previous.line, tag)
+					} else {
+						nestTags[tag] = lt
 					}
 				}
 				if tag == "script" {
@@ -337,6 +369,9 @@ func validate(html string, filename string) {
 }
 
 func main() {
+	debugFlag := flag.Bool("debug", false, "Switch on debugging output")
+	flag.Parse()
+	debug = *debugFlag
 	initTagTables()
 	for i := 1; i < len(os.Args); i++ {
 		//http://stackoverflow.com/questions/13514184/how-can-i-read-a-whole-file-into-a-string-variable-in-golang#13514395

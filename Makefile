@@ -10,7 +10,7 @@ install: validate
 validate: validate.go tag.go
 	go build validate.go tag.go
 
-test:
+test: validate run-tests.pl
 	prove ./run-tests.pl
 
 clean:
