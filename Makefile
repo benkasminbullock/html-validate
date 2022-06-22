@@ -14,4 +14,5 @@ test:
 	prove ./run-tests.pl
 
 clean:
+	purge -r
 	-rm -f validate
