@@ -19,6 +19,7 @@ var validTags = []string{
 	"div",
 	"dl",
 	"dt",
+	"fieldset",
 	"figcaption",
 	"figure",
 	"font",
